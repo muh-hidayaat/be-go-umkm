@@ -13,7 +13,7 @@ import (
 )
 
 // AuthMiddleware untuk autentikasi berbasis userID dan role (untuk login)
-func AuthMiddleware(rdb *redis.Client, allowedRoles ...string) fiber.Handler {
+func AuthMiddleware(rdb *redis.Client) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Ambil token dari header
 		tokenString, err := getTokenFromHeader(c)

@@ -49,7 +49,7 @@ func ExtractEmailFromToken(ctx *fiber.Ctx) (string, error) {
 }
 
 // GenerateJWT generates a JWT for the given user ID.
-func GenerateJWT(userID uuid.UUID, customerID *uuid.UUID, role string) (string, error) {
+func GenerateJWT(userID uuid.UUID) (string, error) {
 	SecretKey := viper.GetString("JWT_SECRET_KEY")
 	if SecretKey == "" {
 		return "", fmt.Errorf("JWT_SECRET_KEY is not set in the configuration")
@@ -57,14 +57,7 @@ func GenerateJWT(userID uuid.UUID, customerID *uuid.UUID, role string) (string, 
 
 	claims := jwt.MapClaims{
 		"userID": userID.String(),
-		"role":   role,
 		"exp":    time.Now().Add(7 * 24 * time.Hour).Unix(),
-	}
-
-	if customerID != nil {
-		claims["customerID"] = customerID.String()
-	} else {
-		claims["customerID"] = nil
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

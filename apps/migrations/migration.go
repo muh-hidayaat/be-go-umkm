@@ -24,7 +24,8 @@ func main() {
 	db := config.DBConnect()
 
 	// db.AutoMigrate(&domain.Role{})
-	db.AutoMigrate(&domain.User{})
+	// db.AutoMigrate(&domain.User{})
+	db.AutoMigrate(&domain.Account{})
 
 	fmt.Println("👍 Migration complete")
 }

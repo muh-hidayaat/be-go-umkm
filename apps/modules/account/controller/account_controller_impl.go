@@ -6,15 +6,12 @@ import (
 	"be-go-umkm/apps/modules/account/request"
 	"be-go-umkm/apps/modules/account/service"
 
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 type AccountControllerImpl struct {
-	service    service.AccountService
-	s3Client   *s3.S3
-	bucketName string
+	service service.AccountService
 }
 
 func NewAccountController(service service.AccountService) AccountController {
@@ -28,7 +25,7 @@ func (c *AccountControllerImpl) FindAll(ctx *fiber.Ctx) error {
 	if err != nil {
 		return helpers.HandleError(ctx, err, fiber.StatusInternalServerError, "Failed to fetch subcategories")
 	}
-	return helpers.WriteJSON(ctx, fiber.StatusOK, subcategories, "Subcategories fetched successfully")
+	return helpers.WriteJSON(ctx, fiber.StatusOK, subcategories, "Account fetched successfully")
 }
 
 func (c *AccountControllerImpl) FindByID(ctx *fiber.Ctx) error {
@@ -39,10 +36,10 @@ func (c *AccountControllerImpl) FindByID(ctx *fiber.Ctx) error {
 
 	account, err := c.service.FindByID(ctx.Context(), id)
 	if err != nil {
-		return helpers.HandleError(ctx, err, fiber.StatusNotFound, "Subcategory not found")
+		return helpers.HandleError(ctx, err, fiber.StatusNotFound, "Account not found")
 	}
 
-	return helpers.WriteJSON(ctx, fiber.StatusOK, account, "Subcategory fetched successfully")
+	return helpers.WriteJSON(ctx, fiber.StatusOK, account, "Account fetched successfully")
 }
 
 func (c *AccountControllerImpl) Create(ctx *fiber.Ctx) error {
@@ -55,22 +52,28 @@ func (c *AccountControllerImpl) Create(ctx *fiber.Ctx) error {
 		return helpers.HandleError(ctx, err, fiber.StatusBadRequest, err.Error())
 	}
 
+	userID, err := helpers.ExtractUserID(ctx)
+	if err != nil {
+		return helpers.HandleError(ctx, err, fiber.StatusBadRequest, "Invalid user ID format")
+	}
+
 	account := domain.Account{
+		UserID:  userID,
 		Name:    req.Name,
 		Type:    req.Type,
 		Balance: req.Balance,
 	}
 
-	createdUser, err := c.service.Create(ctx.Context(), account)
+	createdAccount, err := c.service.Create(ctx.Context(), account)
 	if err != nil {
-		return helpers.HandleError(ctx, err, fiber.StatusInternalServerError, "Failed to create user")
+		return helpers.HandleError(ctx, err, fiber.StatusInternalServerError, "Failed to create account")
 	}
-	return helpers.WriteJSON(ctx, fiber.StatusCreated, createdUser, "User created successfully")
+	return helpers.WriteJSON(ctx, fiber.StatusCreated, createdAccount, "User created successfully")
 }
 func (c *AccountControllerImpl) Update(ctx *fiber.Ctx) error {
 	id, err := uuid.Parse(ctx.Params("id"))
 	if err != nil {
-		return helpers.HandleError(ctx, err, fiber.StatusBadRequest, "Invalid user ID")
+		return helpers.HandleError(ctx, err, fiber.StatusBadRequest, "Invalid account ID")
 	}
 
 	var req request.AccountUpdateRequest
@@ -91,9 +94,9 @@ func (c *AccountControllerImpl) Update(ctx *fiber.Ctx) error {
 
 	updatedAccount, err := c.service.Update(ctx.Context(), account)
 	if err != nil {
-		return helpers.HandleError(ctx, err, fiber.StatusInternalServerError, "Failed to update user")
+		return helpers.HandleError(ctx, err, fiber.StatusInternalServerError, "Failed to update account")
 	}
-	return helpers.WriteJSON(ctx, fiber.StatusOK, updatedAccount, "User updated successfully")
+	return helpers.WriteJSON(ctx, fiber.StatusOK, updatedAccount, "Account updated successfully")
 }
 
 func (c *AccountControllerImpl) Delete(ctx *fiber.Ctx) error {
@@ -106,5 +109,5 @@ func (c *AccountControllerImpl) Delete(ctx *fiber.Ctx) error {
 		return helpers.HandleError(ctx, err, fiber.StatusInternalServerError, "Failed to delete account")
 	}
 
-	return helpers.WriteJSON(ctx, fiber.StatusOK, nil, "Subcategory deleted successfully")
+	return helpers.WriteJSON(ctx, fiber.StatusOK, nil, "Account deleted successfully")
 }

@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -11,6 +13,8 @@ func ExtractUserID(ctx *fiber.Ctx) (uuid.UUID, error) {
 	if userID == nil {
 		return uuid.Nil, fiber.NewError(fiber.StatusUnauthorized, "User ID not found in token")
 	}
+
+	fmt.Println(userID)
 
 	userStr, ok := userID.(string)
 	if !ok {

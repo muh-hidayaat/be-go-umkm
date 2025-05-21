@@ -9,8 +9,8 @@ import (
 )
 
 type Account struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey;column:id" json:"id"`
-	UserID    uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
+	ID        uuid.UUID `gorm:"type:char(36);primaryKey" json:"id"`
+	UserID    uuid.UUID `gorm:"type:char(36);not null" json:"user_id"`
 	Name      string    `gorm:"type:varchar(255);not null" json:"name"`
 	Type      string    `gorm:"type:varchar(255);not null" json:"type"`
 	Balance   int       `gorm:"type:int;not null" json:"balance"`
