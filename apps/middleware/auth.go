@@ -28,8 +28,8 @@ func AuthMiddleware(rdb *redis.Client, allowedRoles ...string) fiber.Handler {
 			return unauthorizedResponse(c, "Invalid or expired token")
 		}
 
-		// Ekstrak userID dan role dari token
-		userID, customerID, role, err := extractUserClaims(claims)
+		// Ekstrak userID dari token
+		userID, err := extractUserClaims(claims)
 		if err != nil {
 			log.Println("Claim extraction error:", err)
 			return unauthorizedResponse(c, "Invalid token payload")
@@ -42,15 +42,14 @@ func AuthMiddleware(rdb *redis.Client, allowedRoles ...string) fiber.Handler {
 		}
 
 		// Periksa apakah role pengguna diizinkan
-		if !isAuthorizedRole(allowedRoles, role) {
-			// fmt.Println(allowedRoles)
-			// fmt.Println(role)
-			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Access Denied"})
-		}
+		// if !isAuthorizedRole(allowedRoles, role) {
+		// 	// fmt.Println(allowedRoles)
+		// 	// fmt.Println(role)
+		// 	return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Access Denied"})
+		// }
 
 		// Simpan userID di konteks request
 		c.Locals("userID", userID)
-		c.Locals("customerID", customerID)
 		return c.Next()
 	}
 }
@@ -99,20 +98,20 @@ func parseAndValidateToken(tokenString string) (jwt.MapClaims, error) {
 }
 
 // extractUserClaims mengambil userID dan role dari JWT claims
-func extractUserClaims(claims jwt.MapClaims) (string, string, string, error) {
+func extractUserClaims(claims jwt.MapClaims) (string, error) {
 	userID, ok := claims["userID"].(string)
 	if !ok {
-		return "", "", "", fmt.Errorf("invalid userID claim in token")
+		return "", fmt.Errorf("invalid userID claim in token")
 	}
 
-	customerID, _ := claims["customerID"].(string)
+	// customerID, _ := claims["customerID"].(string)
 
-	role, ok := claims["role"].(string)
-	if !ok {
-		return "", "", "", fmt.Errorf("invalid role claim in token")
-	}
+	// role, ok := claims["role"].(string)
+	// if !ok {
+	// 	return "", "", "", fmt.Errorf("invalid role claim in token")
+	// }
 
-	return userID, customerID, role, nil
+	return userID, nil
 }
 
 // extractEmailClaim mengambil email dari JWT claims
@@ -138,14 +137,14 @@ func validateTokenInRedis(rdb *redis.Client, userID, tokenString string) error {
 }
 
 // isAuthorizedRole memeriksa apakah role pengguna ada dalam daftar role yang diperbolehkan
-func isAuthorizedRole(allowedRoles []string, userRole string) bool {
-	for _, role := range allowedRoles {
-		if role == userRole {
-			return true
-		}
-	}
-	return false
-}
+// func isAuthorizedRole(allowedRoles []string, userRole string) bool {
+// 	for _, role := range allowedRoles {
+// 		if role == userRole {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 // unauthorizedResponse mengembalikan respons 401 Unauthorized dengan pesan yang lebih jelas
 func unauthorizedResponse(c *fiber.Ctx, message string) error {
